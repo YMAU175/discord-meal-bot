@@ -53,12 +53,35 @@ sudo alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1
 ## 4. アプリケーションデプロイ
 
 ### コードの取得
+
+#### GitHub CLI インストール（Privateリポジトリ対応）
 ```bash
+# Oracle Linux 8の場合
+sudo dnf install -y 'dnf-command(config-manager)'
+sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+sudo dnf install -y gh
+
+# Ubuntu 20.04の場合
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+sudo apt update
+sudo apt install gh
+```
+
+#### GitHub認証とクローン
+```bash
+# GitHub CLI で認証
+gh auth login
+# → 対話形式で設定
+# → GitHubのアカウントタイプ: GitHub.com
+# → 認証方法: Login with a web browser（推奨）またはPaste an authentication token
+# → Git操作プロトコル: HTTPS
+
 # ホームディレクトリに移動
 cd ~
 
-# リポジトリをクローン
-git clone https://github.com/YOUR_USERNAME/discord-meal-bot.git
+# リポジトリをクローン（Privateリポジトリでも自動認証）
+gh repo clone YOUR_USERNAME/discord-meal-bot
 cd discord-meal-bot
 ```
 
@@ -164,7 +187,8 @@ nano ~/update-bot.sh
 ```bash
 #!/bin/bash
 cd ~/discord-meal-bot
-git pull origin main
+# GitHub CLIを使用してPrivateリポジトリからpull
+gh repo sync
 source venv/bin/activate
 pip install -r requirements.txt
 sudo systemctl restart discord-meal-bot.service
